@@ -1,22 +1,19 @@
 pipeline {
   agent any
 
-  options {
-    skipDefaultCheckout()
-  }
-
   environment {
-    DOCKERHUB_CREDS = credentials('dockerhub-creds')
+    DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
   }
 
   stages {
     stage('Clone repo') {
       steps {
-        checkout([$class: 'GitSCM',
+        checkout([
+          $class: 'GitSCM',
           branches: [[name: '*/master']],
           userRemoteConfigs: [[
             url: 'https://github.com/shadow846/CloudOps.git',
-            credentialsId: 'dockerhub-creds'
+            credentialsId: '0b41b991-fd29-42f4-9826-b8e287bd943a'
           ]]
         ])
       }
@@ -32,10 +29,11 @@ pipeline {
       steps {
         withCredentials([usernamePassword(
           credentialsId: 'dockerhub-creds',
-          usernameVariable: 'DOCKER_USER',
-          passwordVariable: 'DOCKER_PASS')]) {
+          usernameVariable: 'DOCKER_USERNAME',
+          passwordVariable: 'DOCKER_PASSWORD'
+        )]) {
           sh '''
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
             docker push goutham0842/cloudops-site
           '''
         }
