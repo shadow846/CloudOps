@@ -1,33 +1,27 @@
 pipeline {
-    agent any
+  agent any
 
-    environment {
-        IMAGE_NAME = "goutham0842/cloudops-site"
+  environment {
+    DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
+  }
+
+  stages {
+    stage('Build Docker Image') {
+      steps {
+        sh 'docker build -t goutham0842/cloudops-site .'
+      }
     }
 
-    stages {
-        stage('Clone Repository') {
-            steps {
-                git url: 'https://github.com/shadow846/CloudOps.git', branch: 'master'
-            }
+    stage('Push to Docker Hub') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+          sh '''
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+            docker push goutham0842/cloudops-site
+          '''
         }
-
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t $IMAGE_NAME .'
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push $IMAGE_NAME
-                    '''
-                }
-            }
-        }
+      }
     }
+  }
 }
 
