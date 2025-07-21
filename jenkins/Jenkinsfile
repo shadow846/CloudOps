@@ -12,11 +12,13 @@ pipeline {
   stages {
     stage('Clone repo') {
       steps {
-        git(
-          url: 'https://github.com/shadow846/CloudOps.git',
-          branch: 'master',
-          credentialsId: 'dockerhub-creds'  // This is the missing part!
-        )
+        checkout([$class: 'GitSCM',
+          branches: [[name: '*/master']],
+          userRemoteConfigs: [[
+            url: 'https://github.com/shadow846/CloudOps.git',
+            credentialsId: 'dockerhub-creds'
+          ]]
+        ])
       }
     }
 
